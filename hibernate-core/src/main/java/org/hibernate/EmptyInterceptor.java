@@ -120,15 +120,4 @@ public class EmptyInterceptor implements Interceptor, Serializable {
 		return sql;
 	}
 
-	@Override
-	public void onCollectionRemove(Object collection, Serializable key) throws CallbackException {
-	}
-
-	@Override
-	public void onCollectionRecreate(Object collection, Serializable key) throws CallbackException {
-	}
-
-	@Override
-	public void onCollectionUpdate(Object collection, Serializable key) throws CallbackException {
-	}
 }

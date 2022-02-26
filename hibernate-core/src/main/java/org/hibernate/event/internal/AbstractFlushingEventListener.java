@@ -142,9 +142,30 @@ public abstract class AbstractFlushingEventListener implements JpaBootstrapSensi
 		final Object anything = getAnything();
 		//safe from concurrent modification because of how concurrentEntries() is implemented on IdentityMap
 		for ( Map.Entry<Object,EntityEntry> me : persistenceContext.reentrantSafeEntityEntries() ) {
-//		for ( Map.Entry me : IdentityMap.concurrentEntries( persistenceContext.getEntityEntries() ) ) {
-			EntityEntry entry = (EntityEntry) me.getValue();
+			EntityEntry entry = me.getValue();
 			Status status = entry.getStatus();
+
+			// This entity will be saved?
+			boolean willBeSaved = true;
+			try {
+				Object o = me.getKey();
+				Class<?> c = o.getClass();
+				Class<?> jpaBase = Class.forName("play.db.jpa.JPABase");
+				while (!c.equals(Object.class)) {
+					if (c.equals(jpaBase)) {
+						willBeSaved = (Boolean) jpaBase.getDeclaredField("willBeSaved").get(o);
+						break;
+					}
+					c = c.getSuperclass();
+				}
+				if (!willBeSaved) {
+					continue;
+				}
+			}
+			catch(ReflectiveOperationException ignore) {
+				// do nothing
+			}
+
 			if ( status == Status.MANAGED || status == Status.SAVING || status == Status.READ_ONLY ) {
 				cascadeOnFlush( session, entry.getPersister(), me.getKey(), anything );
 			}
@@ -260,8 +281,7 @@ public abstract class AbstractFlushingEventListener implements JpaBootstrapSensi
 		final Interceptor interceptor = session.getInterceptor();
 		persistenceContext.forEachCollectionEntry(
 				(coll, ce) -> {
-					if ( ce.isDorecreate() ) {
-						interceptor.onCollectionRecreate( coll, ce.getCurrentKey() );
+					if ( ce.isDorecreate() && interceptor.onCollectionRecreate( coll, ce.getCurrentKey() ) ) {
 						actionQueue.addAction(
 								new CollectionRecreateAction(
 										coll,
@@ -271,8 +291,7 @@ public abstract class AbstractFlushingEventListener implements JpaBootstrapSensi
 								)
 						);
 					}
-					if ( ce.isDoremove() ) {
-						interceptor.onCollectionRemove( coll, ce.getLoadedKey() );
+					if ( ce.isDoremove() && interceptor.onCollectionRemove( coll, ce.getLoadedKey() ) ) {
 						actionQueue.addAction(
 								new CollectionRemoveAction(
 										coll,
@@ -283,8 +302,7 @@ public abstract class AbstractFlushingEventListener implements JpaBootstrapSensi
 								)
 						);
 					}
-					if ( ce.isDoupdate() ) {
-						interceptor.onCollectionUpdate( coll, ce.getLoadedKey() );
+					if ( ce.isDoupdate() && interceptor.onCollectionUpdate( coll, ce.getLoadedKey() ) ) {
 						actionQueue.addAction(
 								new CollectionUpdateAction(
 										coll,
