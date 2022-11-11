@@ -246,11 +246,12 @@ public interface Interceptor {
 	 * @param key The collection key value.
 	 *
 	 * @throws CallbackException Thrown if the interceptor encounters any problems handling the callback.
-	 *
 	 * @deprecated use {@link #onCollectionRecreate(Object, Object)}
 	 */
 	@Deprecated(since = "6.0")
-	default void onCollectionRecreate(Object collection, Serializable key) throws CallbackException {}
+	default boolean onCollectionRecreate(Object collection, Serializable key) throws CallbackException {
+		return true;
+	}
 
 	/**
 	 * Called before a collection is (re)created.
@@ -260,10 +261,12 @@ public interface Interceptor {
 	 *
 	 * @throws CallbackException Thrown if the interceptor encounters any problems handling the callback.
 	 */
-	default void onCollectionRecreate(Object collection, Object key) throws CallbackException {
+	default boolean onCollectionRecreate(Object collection, Object key) throws CallbackException {
 		if (key instanceof Serializable) {
-			onCollectionRecreate(collection, (Serializable) key);
+			return onCollectionRecreate(collection, (Serializable) key);
 		}
+
+		return true;
 	}
 
 	/**
@@ -277,7 +280,9 @@ public interface Interceptor {
 	 * @deprecated use {@link #onCollectionRemove(Object, Object)}
 	 */
 	@Deprecated(since = "6.0")
-	default void onCollectionRemove(Object collection, Serializable key) throws CallbackException {}
+	default boolean onCollectionRemove(Object collection, Serializable key) throws CallbackException {
+		return true;
+	}
 
 	/**
 	 * Called before a collection is deleted.
@@ -287,10 +292,12 @@ public interface Interceptor {
 	 *
 	 * @throws CallbackException Thrown if the interceptor encounters any problems handling the callback.
 	 */
-	default void onCollectionRemove(Object collection, Object key) throws CallbackException {
+	default boolean onCollectionRemove(Object collection, Object key) throws CallbackException {
 		if (key instanceof Serializable) {
-			onCollectionRemove(collection, (Serializable) key);
+			return onCollectionRemove(collection, (Serializable) key);
 		}
+
+		return true;
 	}
 
 	/**
@@ -304,7 +311,9 @@ public interface Interceptor {
 	 * @deprecated use {@link #onCollectionUpdate(Object, Object)}
 	 */
 	@Deprecated(since = "6.0")
-	default void onCollectionUpdate(Object collection, Serializable key) throws CallbackException {}
+	default boolean onCollectionUpdate(Object collection, Serializable key) throws CallbackException {
+		return true;
+	}
 
 	/**
 	 * Called before a collection is updated.
@@ -314,10 +323,12 @@ public interface Interceptor {
 	 *
 	 * @throws CallbackException Thrown if the interceptor encounters any problems handling the callback.
 	 */
-	default void onCollectionUpdate(Object collection, Object key) throws CallbackException {
+	default boolean onCollectionUpdate(Object collection, Object key) throws CallbackException {
 		if (key instanceof Serializable) {
-			onCollectionUpdate(collection, (Serializable) key);
+			return onCollectionUpdate(collection, (Serializable) key);
 		}
+
+		return true;
 	}
 	/**
 	 * Called before a flush.
